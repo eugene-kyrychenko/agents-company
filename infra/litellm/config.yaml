@@ -1,0 +1,41 @@
+model_list:
+  # ── Tactical tier (cheapest, default for routine work) ────
+  - model_name: haiku-4-5
+    litellm_params:
+      model: anthropic/claude-haiku-4-5-20251001
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # ── Analysis tier (mid, for research/copy/finance) ────────
+  - model_name: sonnet-4-6
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # ── Strategic tier (rare, CEO critical decisions only) ────
+  - model_name: opus-4-7
+    litellm_params:
+      model: anthropic/claude-opus-4-7
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  # ── Fallbacks (uncomment when API keys present) ──────────
+  # - model_name: gpt-5-mini-fallback
+  #   litellm_params:
+  #     model: openai/gpt-5-mini
+  #     api_key: os.environ/OPENAI_API_KEY
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  cache: true
+  cache_params:
+    type: redis
+    host: redis
+    port: 6379
+
+  # Per-deployment fallbacks (resilience)
+  fallbacks:
+    - haiku-4-5: [sonnet-4-6]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: "postgresql://studio:studio-local-dev@postgres:5432/studio"

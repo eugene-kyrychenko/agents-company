@@ -1,0 +1,55 @@
+[project]
+name = "agents-company"
+version = "0.1.0"
+description = "Autonomous multi-agent AI product studio (built-to-sell Micro-SaaS)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Orchestration
+    "langgraph>=0.2.50",
+    "langgraph-checkpoint-postgres>=2.0.0",
+    # LLM
+    "litellm>=1.55.0",
+    "anthropic>=0.40.0",
+    # Data
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    # Storage
+    "psycopg[binary,pool]>=3.2.0",
+    "pgvector>=0.3.0",
+    "redis>=5.2.0",
+    # Tools
+    "tavily-python>=0.5.0",
+    "httpx>=0.28.0",
+    # Discord (Phase 2 — installed early so imports don't break)
+    "discord.py>=2.4.0",
+    # Observability
+    "langfuse>=2.55.0",
+    "structlog>=24.4.0",
+    # CLI
+    "typer>=0.15.0",
+    "rich>=13.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]  # line length handled by formatter
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
