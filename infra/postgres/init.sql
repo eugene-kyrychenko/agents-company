@@ -1,5 +1,7 @@
--- Studio databases
+-- Studio databases — keep LiteLLM and Langfuse out of the app DB so their
+-- migrations can never clobber our tables.
 CREATE DATABASE langfuse;
+CREATE DATABASE litellm;
 
 \connect studio
 

@@ -38,4 +38,5 @@ litellm_settings:
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
-  database_url: "postgresql://studio:studio-local-dev@postgres:5432/studio"
+  # Dedicated DB — keeps LiteLLM's Prisma migrations out of our app schema.
+  database_url: "postgresql://studio:studio-local-dev@postgres:5432/litellm"
