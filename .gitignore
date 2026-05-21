@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# uv
+.uv-cache/
+
+# Env & secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Outputs
+outputs/
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Docker volumes (if mounted locally)
+.data/
+postgres-data/
+redis-data/
+langfuse-data/
