@@ -34,6 +34,7 @@ from apps.discord_layer.clients import MultiBotManager
 from apps.discord_layer.config import discord_settings
 from apps.discord_layer.reactions import ReactionHandler
 from apps.discord_layer.transport import DiscordTransport
+from apps.orchestrator.artifacts import dump_outputs
 from apps.orchestrator.config import settings
 from apps.orchestrator.cost_tracker import CostTracker
 from apps.orchestrator.graph import build_graph
@@ -236,9 +237,16 @@ class Listener:
         _upsert_sprint(sprint_id, niche_hint=niche_hint, status="researching")
         try:
             config = {"configurable": {"thread_id": sprint_id}}
-            await graph.ainvoke(initial, config=config)
+            final_dict = await graph.ainvoke(initial, config=config)
+            final_state = SprintState.model_validate(final_dict)
+            final_state.total_cost_usd = await self.cost_tracker.spend_today_usd()
+            out_path = dump_outputs(final_state)
             _upsert_sprint(sprint_id, status="awaiting_human")
-            logger.info("Sprint %s completed (awaiting founder verdict)", sprint_id)
+            logger.info(
+                "Sprint %s completed (awaiting founder verdict). Artifacts: %s",
+                sprint_id,
+                out_path,
+            )
         except Exception:
             logger.exception("Sprint %s failed", sprint_id)
             _upsert_sprint(sprint_id, status="failed")

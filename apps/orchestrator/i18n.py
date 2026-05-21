@@ -31,3 +31,19 @@ LANGUAGE_INSTRUCTIONS: dict[str, str] = {
 def language_preamble(language_code: str) -> str:
     """Return the preamble for the configured language, or empty string."""
     return LANGUAGE_INSTRUCTIONS.get(language_code, "")
+
+
+# Non-English languages tokenize less efficiently — a literal Cyrillic or
+# CJK response often uses 1.4-1.8x as many tokens as the equivalent English
+# prose. Bumping max_tokens for those languages prevents the model from
+# producing a JSON object that gets truncated mid-string (which then fails
+# Pydantic validation and forces an expensive retry).
+_TOKEN_BUDGET_MULTIPLIER: dict[str, float] = {
+    "en": 1.0,
+    "uk": 1.6,
+}
+
+
+def token_budget_multiplier(language_code: str) -> float:
+    """How much to scale `per_message_token_limit` for a given language."""
+    return _TOKEN_BUDGET_MULTIPLIER.get(language_code, 1.4)

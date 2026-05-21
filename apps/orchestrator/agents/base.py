@@ -20,7 +20,7 @@ from pydantic import BaseModel, ValidationError
 
 from apps.orchestrator.config import settings
 from apps.orchestrator.cost_tracker import CostTracker
-from apps.orchestrator.i18n import language_preamble
+from apps.orchestrator.i18n import language_preamble, token_budget_multiplier
 from apps.orchestrator.permissions import ALLOWED_WRITE_CHANNELS
 from apps.orchestrator.state import AgentRole, SprintState
 from apps.orchestrator.transport import Transport
@@ -83,7 +83,9 @@ class BaseAgent(ABC):
         max_tokens: int | None = None,
     ) -> tuple[str, float]:
         """Single LLM call routed through LiteLLM. Returns (text, cost_usd)."""
-        max_tokens = max_tokens or settings.per_message_token_limit
+        if max_tokens is None:
+            multiplier = token_budget_multiplier(settings.studio_language)
+            max_tokens = int(settings.per_message_token_limit * multiplier)
         messages = self._build_messages(user_content)
 
         kwargs: dict[str, Any] = {
