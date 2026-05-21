@@ -20,6 +20,7 @@ from pydantic import BaseModel, ValidationError
 
 from apps.orchestrator.config import settings
 from apps.orchestrator.cost_tracker import CostTracker
+from apps.orchestrator.i18n import language_preamble
 from apps.orchestrator.permissions import ALLOWED_WRITE_CHANNELS
 from apps.orchestrator.state import AgentRole, SprintState
 from apps.orchestrator.transport import Transport
@@ -55,9 +56,17 @@ class BaseAgent(ABC):
         return tier_to_model[self.default_tier]
 
     def _build_messages(self, user_content: str) -> list[dict[str, Any]]:
-        """System prompt is cached if long enough; user content never cached."""
-        system_block: dict[str, Any] = {"type": "text", "text": self.system_prompt}
-        if len(self.system_prompt) >= PROMPT_CACHE_MIN_CHARS:
+        """System prompt is cached if long enough; user content never cached.
+
+        The language preamble (if any) is prepended to the system prompt so
+        it stays inside the cached region — switching `STUDIO_LANGUAGE`
+        invalidates the cache, but a stable language stays warm.
+        """
+        preamble = language_preamble(settings.studio_language)
+        full_system = (preamble + "\n\n" + self.system_prompt) if preamble else self.system_prompt
+
+        system_block: dict[str, Any] = {"type": "text", "text": full_system}
+        if len(full_system) >= PROMPT_CACHE_MIN_CHARS:
             system_block["cache_control"] = {"type": "ephemeral"}
 
         return [
@@ -78,7 +87,11 @@ class BaseAgent(ABC):
         messages = self._build_messages(user_content)
 
         kwargs: dict[str, Any] = {
-            "model": self.model_name,
+            # "openai/" prefix tells litellm SDK that api_base points at an
+            # OpenAI-compatible endpoint (our LiteLLM proxy), not directly at
+            # an upstream provider. Without it the SDK tries to infer the
+            # provider from the model alias and fails.
+            "model": f"openai/{self.model_name}",
             "messages": messages,
             "max_tokens": max_tokens,
             "api_base": settings.litellm_base_url,

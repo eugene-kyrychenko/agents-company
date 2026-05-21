@@ -50,9 +50,12 @@ class MultiBotManager:
         self.clients: dict[AgentRole, discord.Client] = {}
         self._ready_events: dict[AgentRole, asyncio.Event] = {}
         self._run_tasks: list[asyncio.Task] = []
-        # Late-bindable: assign before start_all() to wire founder reactions.
+        # Late-bindable callbacks: assign before start_all() to wire handlers.
         self.on_reaction: (
             Callable[[discord.RawReactionActionEvent], Coroutine[Any, Any, None]] | None
+        ) = None
+        self.on_message: (
+            Callable[[discord.Message], Coroutine[Any, Any, None]] | None
         ) = None
 
         for role in AgentRole:
@@ -67,14 +70,21 @@ class MultiBotManager:
             logger.info("Discord bot ready: %s as %s", role.value, client.user)
             self._ready_events[role].set()
 
-        # Only the CEO bot listens to reactions in #founder-decisions —
-        # that channel is configured to allow only CEO and Founder anyway,
-        # so other bots wouldn't see those events.
+        # Only the CEO bot listens to founder events — #founder-decisions
+        # and #founder-commands are CEO-only channels, so other bots don't
+        # need (or get) these events.
         if role is AgentRole.CEO:
             @client.event
             async def on_raw_reaction_add(payload: discord.RawReactionActionEvent) -> None:
                 if self.on_reaction is not None:
                     await self.on_reaction(payload)
+
+            @client.event
+            async def on_message(message: discord.Message) -> None:
+                if message.author.bot:
+                    return
+                if self.on_message is not None:
+                    await self.on_message(message)
 
     # ── Lifecycle ──────────────────────────────────────────────────
 

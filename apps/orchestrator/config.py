@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     output_dir: Path = Path("./outputs")
     dry_run: bool = True
 
+    # Language for narrative output (Discord posts, prose). Structured
+    # JSON field names stay English. Supported: "en", "uk".
+    studio_language: str = "en"
+
     @property
     def postgres_dsn(self) -> str:
         return (

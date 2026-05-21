@@ -127,13 +127,13 @@ def _channel_overwrites(
         else:
             overwrites[role_obj] = discord.PermissionOverwrite(view_channel=False)
 
-    # Founder always sees everything; writes only in #founder-decisions.
+    # Founder always sees everything; writes only in the founder-* channels.
     founder = roles[FOUNDER_ROLE_NAME]
-    founder_can_write = channel_name == "founder-decisions"
+    founder_writable = {"founder-decisions", "founder-commands"}
     overwrites[founder] = discord.PermissionOverwrite(
         view_channel=True,
         read_message_history=True,
-        send_messages=founder_can_write,
+        send_messages=channel_name in founder_writable,
         add_reactions=True,
     )
 

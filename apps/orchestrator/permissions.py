@@ -12,7 +12,7 @@ from apps.orchestrator.state import AgentRole
 
 # Channels grouped by category, for documentation/reference only.
 CHANNELS = {
-    "directors_board": ["founder-decisions", "c-level-strategy"],
+    "directors_board": ["founder-decisions", "founder-commands", "c-level-strategy"],
     "product_lab": ["market-research", "product-specifications"],
     "growth_marketing": ["growth-hacking", "content-factory"],
     "operations_logs": ["task-tracker", "system-logs"],
@@ -27,6 +27,7 @@ ALL_CHANNELS: set[str] = {ch for group in CHANNELS.values() for ch in group}
 ALLOWED_WRITE_CHANNELS: dict[AgentRole, frozenset[str]] = {
     AgentRole.CEO: frozenset({
         "founder-decisions",       # ONLY CEO writes here (besides founder reactions)
+        "founder-commands",        # CEO replies to founder's idea prompts here
         "c-level-strategy",
         "market-research",
         "product-specifications",
