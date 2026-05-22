@@ -66,6 +66,28 @@ services:
       SALT: local-dev-salt-change-me
       TELEMETRY_ENABLED: "false"
 
+  orchestrator:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      litellm:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      LITELLM_BASE_URL: http://litellm:4000
+      LANGFUSE_HOST: http://langfuse:3000
+    volumes:
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+
 volumes:
   postgres-data:
   redis-data:
