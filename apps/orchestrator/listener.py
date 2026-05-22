@@ -123,6 +123,22 @@ class Listener:
     async def _on_message(self, message: discord.Message) -> None:
         if message.channel.id != self._commands_channel_id:
             return
+        if (
+            discord_settings.discord_guild_id is not None
+            and (message.guild is None or message.guild.id != discord_settings.discord_guild_id)
+        ):
+            return
+        if (
+            discord_settings.discord_founder_user_id is not None
+            and message.author.id != discord_settings.discord_founder_user_id
+        ):
+            logger.warning(
+                "Ignoring message in #%s from unauthorized user %s (%d)",
+                FOUNDER_COMMANDS_CHANNEL,
+                message.author,
+                message.author.id,
+            )
+            return
         text = message.content.strip()
         if not text:
             return
@@ -195,6 +211,16 @@ class Listener:
 
     async def _handle_confirmation(self, payload: discord.RawReactionActionEvent) -> None:
         if payload.member and payload.member.bot:
+            return
+        if (
+            discord_settings.discord_guild_id is not None
+            and payload.guild_id != discord_settings.discord_guild_id
+        ):
+            return
+        if (
+            discord_settings.discord_founder_user_id is not None
+            and payload.user_id != discord_settings.discord_founder_user_id
+        ):
             return
         pending = self._pending.get(payload.message_id)
         if pending is None:
